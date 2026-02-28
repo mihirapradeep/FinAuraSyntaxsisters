@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FinAura AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    /* ... Your existing CSS remains the same ... */
+    body{ margin:0; font-family:'Segoe UI',sans-serif; background:#0a0f2a; color:rgb(239, 235, 238); text-align:center; }
+    .neon{ color:#00f7ff; text-shadow:0 0 5px #00f7ff, 0 0 15px #00f7ff; }
+    .page{ display:none; padding:20px; }
+    .active{ display:block; }
+    .card{ background:rgba(36, 18, 44, 0.96); border:1px solid #00f7ff; box-shadow:0 0 20px #00f7ff; border-radius:20px; padding:20px; margin:15px auto; max-width:420px; }
+    input, select{ width:100%; padding:10px; margin:8px 0; border-radius:12px; border:1px solid #00f7ff; background:#0a0f2a; color:white; box-sizing: border-box; }
+    button{ width:100%; padding:12px; border:none; border-radius:25px; background:#00f7ff; color:black; font-weight:bold; cursor:pointer; margin-top:20px; box-shadow:0 0 15px #00f7ff; }
+    button:hover{ box-shadow:0 0 30px #00f7ff; }
+    table{ width:100%; margin-top:10px; border-collapse: collapse; }
+    th,td{ padding:8px; border-bottom:1px solid #00f7ff; font-size: 0.8em; }
+</style>
+</head>
+
+<body>
+
+<div class="page active" id="page1">
+    <div class="card">
+        <h1 class="neon">FinAura AI</h1>
+        <div style="font-size: 50px;"></div>
+        <img id="logoPreview" src="https://github.com/mihirapradeep/finauraaisyntaxsisters/blob/58f8ad18fe05b7b8389f1306f8c08d78bffc1b0a/logo.jpg" width="120">
+
+        <button onclick="nextPage(2)">Tap here to stop being broke ;)</button>
+    </div>
+</div>
+
+<div class="page" id="page2">
+    <div class="card">
+        <h2 class="neon">Financial Dashboard</h2>
+        
+        <label>Monthly Income</label>
+        <input type="number" id="income" placeholder="Monthly Income (₹)">
+        
+        <hr style="border: 0.5px solid #00f7ff; margin: 20px 0;">
+        
+        <label>Transaction Date</label>
+        <input type="date" id="transDate">
+        
+        <input type="number" id="amount" placeholder="Amount (₹)">
+
+        <select id="category">
+            <option value="Food">Food</option>
+            <option value="Education">Education</option>
+            <option value="Essentials">Essentials</option>
+            <option value="Leisure">Leisure</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Transport">Transport</option>
+            <option value="Car">Car</option>
+            <option value="Travel">Travel</option>
+            <option value="Family">Family</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Gift">Gift</option>
+            <option value="Sports">Sports</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Work">Work</option>
+            <option value="Others">Others</option>
+            <option value="Savings">Savings</option>
+            <option value="Investment">Investment (for ROI)</option>
+        </select>
+
+        <button onclick="addTransaction()">Add Transaction</button>
+        <button onclick="calculateFHI()" style="background: #ff00ff; color: white;">View FHI & ROI</button>
+    </div>
+</div>
+
+<div class="page" id="page3">
+    <div class="card">
+        <h2 class="neon">Financial Health Index</h2>
+        <h1 id="fhiValue">--</h1>
+        <p id="prediction"></p>
+        <div id="roiSection" style="background: rgba(0, 247, 255, 0.1); padding: 10px; border-radius: 10px; margin: 10px 0;">
+            <p><strong>Monthly Return (Est. 10%):</strong> <span id="monthlyReturn">₹0</span></p>
+        </div>
+        <p id="badge"></p>
+        <button onclick="nextPage(4)">Get Smart AI Advice</button>
+    </div>
+
+    <div class="card">
+        <h3>Spending Overview</h3>
+        <canvas id="chart"></canvas>
+        <table id="transTable">
+            <thead><tr><th>Date</th><th>Cat</th><th>Amt</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="page" id="page4">
+    <div class="card">
+        <h2 class="neon">AI Smart Advisor</h2>
+        <p id="advice"></p>
+        <button onclick="location.reload()">Restart</button>
+    </div>
+</div>
+
+<script>
+let transactions = [];
+let totals = {Food:0, Education:0, Essentials:0, Leisure:0, Shopping:0, Transport:0, Car:0, Travel:0, Family:0, Healthcare:0, Gift:0, Sports:0, Beauty:0, Work:0, Others:0, Savings:0, Investment:0};
+let chart;
+
+// Set default date to today
+document.getElementById('transDate').valueAsDate = new Date();
+
+function nextPage(num){
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById("page"+num).classList.add("active");
+}
+
+function addTransaction(){
+    let incomeVal = parseFloat(document.getElementById("income").value);
+    let amount = parseFloat(document.getElementById("amount").value);
+    let category = document.getElementById("category").value;
+    let date = document.getElementById("transDate").value;
+
+    if(isNaN(incomeVal) || incomeVal <= 0) return alert("Please enter monthly income first.");
+    if(isNaN(amount) || amount <= 0) return alert("Enter a valid amount.");
+
+    // Store transaction with date
+    transactions.push({date, category, amount});
+    totals[category] += amount;
+
+    // Update Table Preview
+    let row = `<tr><td>${date}</td><td>${category}</td><td>₹${amount}</td></tr>`;
+    document.querySelector("#transTable tbody").innerHTML += row;
+
+    alert("Added: " + category + " on " + date);
+    document.getElementById("amount").value = "";
+}
+
+function calculateFHI(){
+    let income = parseFloat(document.getElementById("income").value);
+    let totalSpending = totals.Food + totals.Education + totals.Essentials + totals.Leisure + totals.Shopping + totals.Transport + totals.Car + totals.Travel + totals.Family + totals.Healthcare + totals.Gift + totals.Sports + totals.Beauty + totals.Work + totals.Others ;
+    let totalAssets = totals.Savings + totals.Investment;
+
+    if(income <= 0) return alert("Enter Income!");
+
+    // FHI Logic
+    let savingsRate = (totalAssets / income) * 100;
+    let spendingRatio = (totalSpending / income) * 100;
+    let stability = 100 - spendingRatio;
+    let FHI = Math.round((savingsRate * 0.4) + (stability * 0.4) + (20)); 
+    if(FHI > 100) FHI = 100;
+
+    document.getElementById("fhiValue").innerText = FHI;
+
+    // Monthly Return Calculation (Example: assuming 10% annual return / 12 months)
+    // Formula: (Investment * 0.10) / 12
+    let annualRate = 0.10; 
+    let mReturn = (totals.Investment * annualRate) / 12;
+    document.getElementById("monthlyReturn").innerText = "₹" + mReturn.toFixed(2);
+
+    let balance = income - totalSpending;
+    document.getElementById("prediction").innerText = "Projected Liquid Balance: ₹" + balance;
+
+    // Badges
+    let badge = document.getElementById("badge");
+    if(FHI >= 80) badge.innerText = "💎 Diamond Saver";
+    else if(FHI >= 60) badge.innerText = "🏆 Smart Planner";
+    else badge.innerText = "⚠ Improve Spending Habits";
+
+    generateAdvice(FHI, mReturn);
+    generateChart();
+    nextPage(3);
+}
+
+function generateAdvice(FHI, mReturn){
+    let msg = "";
+    if(FHI >= 80) msg = "Excellent! Your portfolio is yielding ₹" + mReturn.toFixed(2) + " this month. Keep compounding!";
+    else if(FHI >= 60) msg = "You're doing well. Consider moving more from 'Leisure' to 'Investment' to see higher returns.";
+    else msg = "Warning: Spending is high. Your returns are currently too low to offset inflation. Cut back on Essentials/Leisure.";
+    document.getElementById("advice").innerText = msg;
+}
+
+function generateChart(){
+    if(chart) chart.destroy();
+    chart = new Chart(document.getElementById("chart"),{
+        type:'doughnut',
+        data:{
+            labels: Object.keys(totals),
+            datasets:[{
+                data: Object.values(totals),
+                backgroundColor: ['#046307','#ff00ff','#CC5500','#ffaa00','#8888ff', '#ffffff','#9D00FF','#FFFF00','#FF0000','#0000FF','#9CAF88','#FF1493','#8B5DFF','#FFB76C','#6F4E37','#65000B','#580F41']
+            }]
+        },
+        options: { plugins: { legend: { labels: { color: 'white' } } } }
+    });
+}
+</script>
+
+</body>
+</html>
